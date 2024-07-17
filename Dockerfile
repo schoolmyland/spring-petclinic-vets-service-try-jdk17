@@ -4,14 +4,21 @@ ARG ARTIFACT_NAME
 COPY ${ARTIFACT_NAME}.jar application.jar
 RUN java -Djarmode=layertools -jar application.jar extract
 
+ARG DOCKERIZE_VERSION
+RUN wget -O dockerize.tar.gz https://github.com/jwilder/dockerize/releases/download/${DOCKERIZE_VERSION}/dockerize-alpine-linux-amd64-${DOCKERIZE_VERSION}.tar.gz
+RUN tar xzf dockerize.tar.gz
+RUN chmod +x dockerize
 
 FROM eclipse-temurin:17
 WORKDIR application
+
+COPY --from=builder application/dockerize ./
 
 ARG EXPOSED_PORT
 EXPOSE ${EXPOSED_PORT}
 
 ENV SPRING_PROFILES_ACTIVE docker
+
 
 COPY --from=builder application/dependencies/ ./
 
